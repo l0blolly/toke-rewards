@@ -5,6 +5,7 @@ import axios, { AxiosError } from "axios";
 import knownCycleHashes from "./cache/cycleHashes.json";
 import { formatEther } from "ethers/lib/utils";
 import { useState } from "react";
+import { ReactComponent as TokemakIcon } from "./components/tokemak-icon.svg";
 
 import { UserInput } from "./components/UserInput";
 import { Totals } from "./components/Totals";
@@ -118,8 +119,14 @@ function App() {
     <div className="App">
       <AppBar position="sticky">
         <Toolbar variant="dense">
-          <Typography variant="h5" color="inherit" component="div">
+          <Typography
+            variant="h5"
+            color="inherit"
+            component="div"
+            style={{ display: "flex", alignItems: "center", gap: "5px" }}
+          >
             Tokemak Rewards
+            <TokemakIcon />
           </Typography>
         </Toolbar>
       </AppBar>

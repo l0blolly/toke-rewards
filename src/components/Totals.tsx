@@ -86,7 +86,7 @@ export function Totals({ latestCycle, address }: Props) {
           <TableBody>
             {orderBy(Object.entries(byToken), ([_, v]) => v, "desc").map(
               ([k, v]) => (
-                <TableRow>
+                <TableRow key={k}>
                   <TableCell>{k}</TableCell>
                   <TableCell>{formatEther(v.toString())}</TableCell>
                 </TableRow>
