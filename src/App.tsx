@@ -1,12 +1,18 @@
 import { RewardsHash__factory } from "./typechain";
-import { getDefaultProvider } from "ethers";
-import { useQueries, useQuery } from "react-query";
+import { BigNumber, getDefaultProvider } from "ethers";
+import { useQuery } from "react-query";
 import axios, { AxiosError } from "axios";
 import knownCycleHashes from "./cache/cycleHashes.json";
 import { formatEther } from "ethers/lib/utils";
 import { useState } from "react";
 
-type CycleInfo = {
+import { UserInput } from "./components/UserInput";
+import { Totals } from "./components/Totals";
+
+export type CycleInfo = {
+  payload: {
+    cycle: number;
+  };
   summary: {
     breakdown: {
       description: string;
@@ -21,7 +27,7 @@ const contract = RewardsHash__factory.connect(
   getDefaultProvider()
 );
 
-function getCycleHash(cycle: number, enabled = true) {
+export function getCycleHash(cycle: number, enabled = true) {
   return {
     queryKey: ["cycleHash", cycle],
     queryFn: () => contract.cycleHashes(cycle),
@@ -30,7 +36,7 @@ function getCycleHash(cycle: number, enabled = true) {
   };
 }
 
-function getCycleInfo(address: string, cycleHash?: string[]) {
+export function getCycleInfo(address: string, cycleHash?: string[], cycle = 0) {
   return {
     queryKey: ["cycleInfo", cycleHash, address],
     queryFn: async () => {
@@ -44,6 +50,9 @@ function getCycleInfo(address: string, cycleHash?: string[]) {
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           return {
+            payload: {
+              cycle: cycle,
+            },
             summary: {
               breakdown: [],
               cycleTotal: "0",
@@ -66,73 +75,64 @@ function App() {
     { staleTime: 1000 * 60 * 60 } // 1 hour
   );
 
-  const cycleHashes = useQueries(
-    Array.from(Array((latestCycle?.toNumber() || 0) + 1).keys()).map((cycle) =>
-      getCycleHash(cycle, !!latestCycle)
-    )
-  );
-
-  const rewards = useQueries(
-    cycleHashes.map(({ data: cycleHash }) => getCycleInfo(address, cycleHash))
-  );
-
-  const total = rewards
-    .map(({ data }) => data?.summary.cycleTotal)
-    .reduce((a = "0", b = "0") => (BigInt(a) + BigInt(b)).toString());
-
-  // @ts-ignore
-  window.foo = rewards;
-
   return (
     <div className="App">
-      <header className="App-header">header</header>
-      <div>
-        <form
-          onSubmit={(event) => {
-            setAddress(event.currentTarget["address"].value);
-            event.preventDefault();
-          }}
-        >
-          <input
-            type="text"
-            name="address"
-            defaultValue={process.env.REACT_APP_DEFAULT_ADDRESS || ""}
-          />
-          <button type="submit">button</button>
-        </form>
-      </div>
+      <UserInput {...{ setAddress }} />
 
-      <div>latest cycle{latestCycle?.toNumber()}</div>
+      {!latestCycle ? (
+        <div>loading</div>
+      ) : (
+        <>
+          <div>latest cycle {latestCycle.toNumber()}</div>
 
-      <div>total {formatEther(total || 0)}</div>
+          <Totals {...{ address, latestCycle }} />
 
-      <table>
-        <thead>
-          <tr>
-            <th>cycle</th>
-            <th>token</th>
-            <th>total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {latestCycle
-            ? Array.from(Array(latestCycle.toNumber() + 1).keys())
-                .reverse()
-                .map((cycle) => (
-                  <Row cycle={cycle} key={cycle} address={address} />
-                ))
-            : null}
-        </tbody>
-      </table>
+          <DetailedTable {...{ address, latestCycle }} />
+        </>
+      )}
     </div>
+  );
+}
+
+function DetailedTable({
+  latestCycle,
+  address,
+}: {
+  latestCycle: BigNumber;
+  address: string;
+}) {
+  const cycleArray = Array.from(
+    Array((latestCycle?.toNumber() || -1) + 1).keys()
+  );
+
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>cycle</th>
+          <th>token</th>
+          <th>total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {latestCycle
+          ? cycleArray
+              .reverse()
+              .map((cycle) => (
+                <Row cycle={cycle} key={cycle} address={address} />
+              ))
+          : null}
+      </tbody>
+    </table>
   );
 }
 
 function Row({ cycle, address }: { cycle: number; address: string }) {
   const { data: cycleHash } = useQuery(getCycleHash(cycle));
 
-  const foo = useQuery<CycleInfo, AxiosError>(getCycleInfo(address, cycleHash));
-  const { data: cycleInfo, isLoading } = foo;
+  const { data: cycleInfo, isLoading } = useQuery<CycleInfo, AxiosError>(
+    getCycleInfo(address, cycleHash)
+  );
 
   if (isLoading) {
     return null;
