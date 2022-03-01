@@ -46,7 +46,7 @@ export function Graph({ rewards }: Props) {
   const data = rewards.map((reward) => {
     const defaultVal = { name: reward?.payload?.cycle };
     return (
-      reward?.summary.breakdown.reduce((acc, obj) => {
+      reward?.summary?.breakdown.reduce((acc, obj) => {
         return { ...acc, [obj.description]: formatEther(obj.amount) };
       }, defaultVal) || defaultVal
     );
@@ -58,6 +58,7 @@ export function Graph({ rewards }: Props) {
     Object.keys(obj).forEach((key) => set.add(key));
   });
   set.delete("name");
+  set.delete("DeGenesis");
 
   return (
     <ResponsiveContainer width="100%" height="100%">

@@ -20,7 +20,7 @@ export function Totals({ latestCycle, address }: Props) {
 
   const rewards = useQueries(
     cycleHashes.map(({ data: cycleHash }, i) =>
-      getCycleInfo(address, cycleHash, i)
+      getCycleInfo(address, i, cycleHash)
     )
   );
 
@@ -39,7 +39,7 @@ export function Totals({ latestCycle, address }: Props) {
   }
 
   const total = rewards
-    .map(({ data }) => data?.summary.cycleTotal)
+    .map(({ data }) => data?.summary?.cycleTotal)
     .reduce((a = "0", b = "0") => (BigInt(a) + BigInt(b)).toString(), "0");
 
   return (

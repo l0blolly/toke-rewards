@@ -12,6 +12,7 @@ import { Totals } from "./components/Totals";
 export type CycleInfo = {
   payload: {
     cycle: number;
+    amount: string;
   };
   summary: {
     breakdown: {
@@ -36,7 +37,11 @@ export function getCycleHash(cycle: number, enabled = true) {
   };
 }
 
-export function getCycleInfo(address: string, cycleHash?: string[], cycle = 0) {
+export function getCycleInfo(
+  address: string,
+  cycle: number,
+  cycleHash?: string[]
+) {
   return {
     queryKey: ["cycleInfo", cycleHash, address],
     queryFn: async () => {
@@ -46,12 +51,27 @@ export function getCycleInfo(address: string, cycleHash?: string[], cycle = 0) {
         const { data } = await axios.get<CycleInfo>(
           `https://ipfs.tokemaklabs.xyz/ipfs/${cycleHash[1]}/${address}.json`
         );
+
+        if (cycle === 0) {
+          data.payload.cycle = 0;
+          data.summary = {
+            cycleTotal: data.payload.amount,
+            breakdown: [
+              {
+                description: "DeGenesis",
+                amount: data.payload.amount,
+              },
+            ],
+          };
+        }
+
         return data;
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           return {
             payload: {
               cycle: cycle,
+              amount: "0",
             },
             summary: {
               breakdown: [],
@@ -102,7 +122,7 @@ function DetailedTable({
   address: string;
 }) {
   const cycleArray = Array.from(
-    Array((latestCycle?.toNumber() || -1) + 1).keys()
+    Array((latestCycle?.toNumber() || 0) + 1).keys()
   );
 
   return (
@@ -131,7 +151,7 @@ function Row({ cycle, address }: { cycle: number; address: string }) {
   const { data: cycleHash } = useQuery(getCycleHash(cycle));
 
   const { data: cycleInfo, isLoading } = useQuery<CycleInfo, AxiosError>(
-    getCycleInfo(address, cycleHash)
+    getCycleInfo(address, cycle, cycleHash)
   );
 
   if (isLoading) {
