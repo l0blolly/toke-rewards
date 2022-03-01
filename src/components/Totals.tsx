@@ -28,7 +28,7 @@ export function Totals({ latestCycle, address }: Props) {
   const idle = cycleHashes.some(idleFn) || rewards.some(idleFn);
 
   if (idle) {
-    return <div>Waiting for user input</div>;
+    return null;
   }
 
   const loadingFn = ({ isLoading }: { isLoading: boolean }) => isLoading;
@@ -44,8 +44,8 @@ export function Totals({ latestCycle, address }: Props) {
 
   return (
     <>
-      <div>total {formatEther(total || 0)}</div>
-      <div style={{ width: "1000px", height: "400px" }}>
+      <div>Total Earned: {formatEther(total || 0)}</div>
+      <div style={{ width: "100%", height: "400px" }}>
         <Graph rewards={rewards.map(({ data }) => data)} />
       </div>
     </>

@@ -1,24 +1,30 @@
+import { Button, TextField } from "@mui/material";
+
 type Props = {
   setAddress: (address: string) => void;
 };
 
 export function UserInput({ setAddress }: Props) {
   return (
-    <div>
-      <form
-        onSubmit={(event) => {
-          setAddress(event.currentTarget["address"].value);
-          event.preventDefault();
-        }}
-      >
-        <input
-          type="text"
-          name="address"
-          autoFocus={true}
-          defaultValue={process.env.REACT_APP_DEFAULT_ADDRESS || ""}
-        />
-        <button type="submit">query</button>
-      </form>
-    </div>
+    <form
+      onSubmit={(event) => {
+        setAddress(event.currentTarget["address"].value);
+        event.preventDefault();
+      }}
+      style={{ display: "flex", gap: "15px", justifyContent: "center" }}
+    >
+      <TextField
+        label="Address"
+        type="text"
+        name="address"
+        autoFocus={true}
+        defaultValue={process.env.REACT_APP_DEFAULT_ADDRESS || ""}
+        variant="standard"
+        style={{ minWidth: "375px" }}
+      />
+      <Button type="submit" variant="contained">
+        Query
+      </Button>
+    </form>
   );
 }

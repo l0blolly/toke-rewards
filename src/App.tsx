@@ -1,5 +1,5 @@
 import { RewardsHash__factory } from "./typechain";
-import { BigNumber, getDefaultProvider } from "ethers";
+import { BigNumber, providers } from "ethers";
 import { useQuery } from "react-query";
 import axios, { AxiosError } from "axios";
 import knownCycleHashes from "./cache/cycleHashes.json";
@@ -8,6 +8,20 @@ import { useState } from "react";
 
 import { UserInput } from "./components/UserInput";
 import { Totals } from "./components/Totals";
+import {
+  AppBar,
+  Container,
+  CssBaseline,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 
 export type CycleInfo = {
   payload: {
@@ -25,8 +39,13 @@ export type CycleInfo = {
 
 const contract = RewardsHash__factory.connect(
   "0x5ec3EC6A8aC774c7d53665ebc5DDf89145d02fB6",
-  getDefaultProvider()
+  new providers.JsonRpcProvider(
+    "https://mainnet.infura.io/v3/" + process.env.REACT_APP_INFURA_ID
+  )
 );
+
+// @ts-ignore
+window.contract = contract;
 
 export function getCycleHash(cycle: number, enabled = true) {
   return {
@@ -97,19 +116,35 @@ function App() {
 
   return (
     <div className="App">
-      <UserInput {...{ setAddress }} />
+      <AppBar position="sticky">
+        <Toolbar variant="dense">
+          <Typography variant="h5" color="inherit" component="div">
+            Tokemak Rewards
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <Container style={{ marginTop: "15px" }} component="main">
+        <CssBaseline />
+        <UserInput {...{ setAddress }} />
 
-      {!latestCycle ? (
-        <div>loading</div>
-      ) : (
-        <>
-          <div>latest cycle {latestCycle.toNumber()}</div>
+        {!latestCycle ? (
+          <div>loading</div>
+        ) : (
+          <>
+            <div>Latest Cycle {latestCycle.toNumber()}</div>
 
-          <Totals {...{ address, latestCycle }} />
+            {address !== "" ? (
+              <>
+                <Totals {...{ address, latestCycle }} />
 
-          <DetailedTable {...{ address, latestCycle }} />
-        </>
-      )}
+                <DetailedTable {...{ address, latestCycle }} />
+              </>
+            ) : (
+              <div>Enter an address to continue</div>
+            )}
+          </>
+        )}
+      </Container>
     </div>
   );
 }
@@ -126,24 +161,26 @@ function DetailedTable({
   );
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>cycle</th>
-          <th>token</th>
-          <th>total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {latestCycle
-          ? cycleArray
-              .reverse()
-              .map((cycle) => (
-                <Row cycle={cycle} key={cycle} address={address} />
-              ))
-          : null}
-      </tbody>
-    </table>
+    <TableContainer component={Paper}>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Cycle</TableCell>
+            <TableCell>Token</TableCell>
+            <TableCell>Total</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {latestCycle
+            ? cycleArray
+                .reverse()
+                .map((cycle) => (
+                  <Row cycle={cycle} key={cycle} address={address} />
+                ))
+            : null}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 
@@ -163,11 +200,11 @@ function Row({ cycle, address }: { cycle: number; address: string }) {
       {cycleInfo?.summary.breakdown
         .filter((info) => info.amount !== "0")
         .map((info) => (
-          <tr key={info.description}>
-            <td>{cycle}</td>
-            <td>{info.description}</td>
-            <td>{formatEther(info.amount)}</td>
-          </tr>
+          <TableRow key={info.description}>
+            <TableCell>{cycle}</TableCell>
+            <TableCell>{info.description}</TableCell>
+            <TableCell>{formatEther(info.amount)}</TableCell>
+          </TableRow>
         ))}
     </>
   );
