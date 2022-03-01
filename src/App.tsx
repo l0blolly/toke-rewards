@@ -161,26 +161,29 @@ function DetailedTable({
   );
 
   return (
-    <TableContainer component={Paper}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Cycle</TableCell>
-            <TableCell>Token</TableCell>
-            <TableCell>Total</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {latestCycle
-            ? cycleArray
-                .reverse()
-                .map((cycle) => (
-                  <Row cycle={cycle} key={cycle} address={address} />
-                ))
-            : null}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <>
+      <h2>By Cycle</h2>
+      <TableContainer component={Paper}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Cycle</TableCell>
+              <TableCell>Token</TableCell>
+              <TableCell>Total</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {latestCycle
+              ? cycleArray
+                  .reverse()
+                  .map((cycle) => (
+                    <Row cycle={cycle} key={cycle} address={address} />
+                  ))
+              : null}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }
 
