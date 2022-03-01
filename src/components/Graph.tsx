@@ -1,7 +1,7 @@
 import { formatEther } from "ethers/lib/utils";
 
 import { CycleInfo } from "../App";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -12,6 +12,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { mapValues, mergeWith } from "lodash";
+import { FormControlLabel, Switch } from "@mui/material";
 
 type Props = {
   rewards: (CycleInfo | undefined)[];
@@ -19,6 +21,7 @@ type Props = {
 
 export function Graph({ rewards }: Props) {
   const [hidden, setHidden] = useState<string[]>([]);
+  const [showByCycle, setShowByCycle] = useState<boolean>(true);
 
   const colors = [
     "#63b598",
@@ -30,75 +33,122 @@ export function Graph({ rewards }: Props) {
     "#0d5ac1",
     "#f205e6",
     "#1c0365",
-    "#14a9ad",
+    "#f2510e",
     "#4ca2f9",
     "#a4e43f",
     "#d298e2",
     "#6119d0",
     "#d2737d",
     "#c0a43c",
-    "#f2510e",
     "#651be6",
     "#79806e",
     "#61da5e",
   ];
 
-  const data = rewards.map((reward) => {
-    const defaultVal = { name: reward?.payload?.cycle };
-    return (
-      reward?.summary?.breakdown.reduce((acc, obj) => {
-        return { ...acc, [obj.description]: formatEther(obj.amount) };
-      }, defaultVal) || defaultVal
-    );
-  });
+  const { byCycle, aggregate } = useMemo(() => {
+    const byCycle: Record<string, string>[] = [];
+    const aggregate: Record<string, string>[] = [];
 
-  const set = new Set<string>();
+    let last: Record<string, string> = {};
 
-  data.forEach((obj) => {
-    Object.keys(obj).forEach((key) => set.add(key));
-  });
+    for (let i in rewards) {
+      const nameObj = { name: i.toString() };
+      const data = rewards[i];
+
+      if (!data) {
+        byCycle.push(nameObj);
+        aggregate.push({
+          ...last,
+          ...nameObj,
+        });
+      } else {
+        let current = data?.summary?.breakdown.reduce((acc, obj) => {
+          return { ...acc, [obj.description]: obj.amount };
+        }, {});
+
+        byCycle.push({
+          ...mapValues(current, formatEther),
+          ...nameObj,
+        });
+
+        aggregate.push({
+          ...mapValues(
+            // eslint-disable-next-line no-loop-func
+            mergeWith(current, last, (a, b) => {
+              if (a && b) {
+                return (BigInt(a) + BigInt(b)).toString();
+              } else if (a) {
+                return a;
+              } else {
+                return b;
+              }
+            }),
+            formatEther
+          ),
+          ...nameObj,
+        });
+
+        last = current;
+      }
+    }
+
+    return { byCycle, aggregate };
+  }, [rewards]);
+
+  const set = new Set<string>(Object.keys(aggregate[aggregate.length - 1]));
   set.delete("name");
-  set.delete("DeGenesis");
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart
-        width={500}
-        height={400}
-        data={data}
-        margin={{
-          top: 10,
-          right: 30,
-          left: 0,
-          bottom: 0,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Legend
-          onClick={(e) => {
-            if (hidden.includes(e.dataKey)) {
-              hidden.splice(hidden.indexOf(e.dataKey), 1);
-              setHidden([...hidden]);
-            } else {
-              setHidden([...hidden, e.dataKey]);
-            }
-          }}
-        />
-        {Array.from(set).map((key, i) => (
-          <Area
-            hide={hidden.includes(key)}
-            type="monotone"
-            dataKey={key}
-            stackId="1"
-            key={key}
-            fill={colors[i]}
-            stroke={colors[i]}
+    <>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={!showByCycle}
+            onChange={() => setShowByCycle(!showByCycle)}
           />
-        ))}
-      </AreaChart>
-    </ResponsiveContainer>
+        }
+        label="Aggregate amounts"
+      />
+
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          width={500}
+          height={400}
+          data={showByCycle ? byCycle : aggregate}
+          margin={{
+            top: 10,
+            right: 30,
+            left: 0,
+            bottom: 0,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend
+            onClick={(e) => {
+              if (hidden.includes(e.dataKey)) {
+                hidden.splice(hidden.indexOf(e.dataKey), 1);
+                setHidden([...hidden]);
+              } else {
+                setHidden([...hidden, e.dataKey]);
+              }
+            }}
+          />
+          {Array.from(set).map((key, i) => (
+            <Area
+              hide={hidden.includes(key)}
+              type="monotone"
+              dataKey={key}
+              stackId="1"
+              key={key}
+              fill={colors[i]}
+              stroke={colors[i]}
+            />
+          ))}
+        </AreaChart>
+      </ResponsiveContainer>
+    </>
   );
 }
