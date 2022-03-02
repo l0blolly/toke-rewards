@@ -122,10 +122,10 @@ export function Graph({ rewards }: Props) {
             bottom: 0,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid stroke="#424242" strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis />
-          <Tooltip />
+          <Tooltip contentStyle={{ color: "black" }} />
           <Legend
             onClick={(e) => {
               if (hidden.includes(e.dataKey)) {
