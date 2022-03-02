@@ -8,7 +8,7 @@ export function UserInput({ setAddress }: Props) {
   return (
     <form
       onSubmit={(event) => {
-        setAddress(event.currentTarget["address"].value);
+        setAddress(event.currentTarget["address"].value.toLowerCase().trim());
         event.preventDefault();
       }}
     >
