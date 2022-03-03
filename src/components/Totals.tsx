@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { useQueries } from "react-query";
+import { useQueries, useQuery } from "react-query";
 import { formatEther } from "ethers/lib/utils";
 import { Graph } from "./Graph";
 import { getCycleHash, getCycleInfo } from "../App";
@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@mui/material";
 import { orderBy } from "lodash";
+import axios from "axios";
+import { Formatter } from "./Formatter";
 
 type Props = {
   latestCycle: BigNumber;
@@ -20,6 +22,20 @@ type Props = {
 };
 
 export function Totals({ latestCycle, address }: Props) {
+  const { data: tokePrice } = useQuery(
+    "price",
+    async () => {
+      const { data } = await axios.get<{ prices: { toke: number } }>(
+        "https://tokemakmarketdata.s3.amazonaws.com/current.json"
+      );
+      return data;
+    },
+    {
+      select: (data) => data.prices.toke,
+      staleTime: 1000 * 60 * 5, // 5 min
+    }
+  );
+
   const cycleArray = Array.from(
     Array((latestCycle?.toNumber() || -1) + 1).keys()
   );
@@ -66,15 +82,30 @@ export function Totals({ latestCycle, address }: Props) {
     }
   }
 
+  const formattedTotal = formatEther(total || 0);
+
   return (
     <>
-      <div>Total Earned: {formatEther(total || 0)}</div>
+      <div>
+        Total Earned: <Formatter value={parseFloat(formattedTotal)} /> toke
+        {tokePrice ? (
+          <span style={{ marginLeft: "5px" }}>
+            (
+            <Formatter
+              value={tokePrice * parseFloat(formattedTotal)}
+              currency
+            />{" "}
+            at current toke price of <Formatter value={tokePrice} currency />)
+          </span>
+        ) : null}
+      </div>
 
       <div style={{ width: "100%", height: "400px" }}>
         <Graph rewards={rewards.map(({ data }) => data)} />
+        <div>(Click on labels to show or hide reward types)</div>
       </div>
 
-      <h2>By Token</h2>
+      <h2 style={{ marginTop: "70px" }}>By Token</h2>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
