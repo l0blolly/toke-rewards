@@ -9,8 +9,14 @@ export function UserInput({ setAddress }: Props) {
   return (
     <form
       onSubmit={(event) => {
-        setAddress(event.currentTarget["address"].value.toLowerCase().trim());
         event.preventDefault();
+
+        const value = event.currentTarget["address"].value.trim();
+        try {
+          setAddress(getAddress(value).toLowerCase());
+        } catch {
+          alert("invalid eth address");
+        }
       }}
     >
       <Grid
