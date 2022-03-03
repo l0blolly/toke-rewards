@@ -1,4 +1,5 @@
 import { Button, Grid, TextField } from "@mui/material";
+import { getAddress } from "ethers/lib/utils";
 
 type Props = {
   setAddress: (address: string) => void;
@@ -26,7 +27,7 @@ export function UserInput({ setAddress }: Props) {
             typeof="text"
             name="address"
             autoFocus={true}
-            defaultValue={process.env.REACT_APP_DEFAULT_ADDRESS || ""}
+            defaultValue={import.meta.env.VITE_DEFAULT_ADDRESS || ""}
           />
         </Grid>
         <Grid item xs={12} sm={1}>

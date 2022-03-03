@@ -26,4 +26,5 @@ src/typechain
 
 .idea
 .env
-
+stats.html
+dist

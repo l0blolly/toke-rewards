@@ -12,7 +12,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { mapValues, mergeWith } from "lodash";
+import mapValues from "lodash/mapValues";
+import mergeWith from "lodash/mergeWith";
 import { FormControlLabel, Switch } from "@mui/material";
 
 type Props = {

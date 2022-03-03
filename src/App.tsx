@@ -41,7 +41,7 @@ export type CycleInfo = {
 const contract = RewardsHash__factory.connect(
   "0x5ec3EC6A8aC774c7d53665ebc5DDf89145d02fB6",
   new providers.JsonRpcProvider(
-    "https://mainnet.infura.io/v3/" + process.env.REACT_APP_INFURA_ID
+    "https://mainnet.infura.io/v3/" + import.meta.env.VITE_INFURA_ID
   )
 );
 
@@ -126,7 +126,7 @@ function App() {
             style={{ display: "flex", alignItems: "center", gap: "5px" }}
           >
             Tokemak Rewards
-            <TokemakIcon />
+            <TokemakIcon style={{ width: "45px" }} />
           </Typography>
         </Toolbar>
       </AppBar>

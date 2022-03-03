@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { useQueries, useQuery } from "react-query";
 import { formatEther } from "ethers/lib/utils";
-import { Graph } from "./Graph";
+import React, { Suspense } from "react";
 import { getCycleHash, getCycleInfo } from "../App";
 import {
   Paper,
@@ -12,9 +12,15 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { orderBy } from "lodash";
+import orderBy from "lodash/orderBy";
 import axios from "axios";
 import { Formatter } from "./Formatter";
+
+const Graph = React.lazy(() =>
+  import("./Graph").then(({ Graph }) => ({
+    default: Graph,
+  }))
+);
 
 type Props = {
   latestCycle: BigNumber;
@@ -63,7 +69,7 @@ export function Totals({ latestCycle, address }: Props) {
   const loading = cycleHashes.some(loadingFn) || rewards.some(loadingFn);
 
   if (loading) {
-    return <div>loading</div>;
+    return <div>Waiting for cycle rewards</div>;
   }
 
   const total = rewards
@@ -101,8 +107,10 @@ export function Totals({ latestCycle, address }: Props) {
       </div>
 
       <div style={{ width: "100%", height: "400px" }}>
-        <Graph rewards={rewards.map(({ data }) => data)} />
-        <div>(Click on labels to show or hide reward types)</div>
+        <Suspense fallback={null}>
+          <Graph rewards={rewards.map(({ data }) => data)} />
+          <div>(Click on labels to show or hide reward types)</div>
+        </Suspense>
       </div>
 
       <h2 style={{ marginTop: "70px" }}>By Token</h2>
