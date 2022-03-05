@@ -177,7 +177,7 @@ function DetailedTable({
             <TableRow>
               <TableCell>Cycle</TableCell>
               <TableCell>Token</TableCell>
-              <TableCell>Total</TableCell>
+              <TableCell>Reward (TOKE)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

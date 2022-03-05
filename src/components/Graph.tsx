@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Label,
 } from "recharts";
 import mapValues from "lodash/mapValues";
 import mergeWith from "lodash/mergeWith";
@@ -119,15 +120,33 @@ export function Graph({ rewards }: Props) {
           margin={{
             top: 10,
             right: 30,
-            left: 0,
-            bottom: 0,
+            left: 10,
+            bottom: 10,
           }}
         >
           <CartesianGrid stroke="#424242" strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip contentStyle={{ color: "black" }} />
+          <XAxis dataKey="name">
+            <Label
+              style={{ fill: "ghostwhite" }}
+              value="Cycle #"
+              offset={-10}
+              position="insideBottom"
+            />
+          </XAxis>
+          <YAxis>
+            <Label
+              style={{ fill: "ghostwhite" }}
+              value="Rewards (TOKE)"
+              angle={-90}
+              position="insideLeft"
+            />
+          </YAxis>
+          <Tooltip
+            contentStyle={{ color: "black" }}
+            labelFormatter={(value) => "Cycle " + value}
+          />
           <Legend
+            wrapperStyle={{ bottom: -5 }}
             onClick={(e) => {
               if (hidden.includes(e.dataKey)) {
                 hidden.splice(hidden.indexOf(e.dataKey), 1);
@@ -150,6 +169,7 @@ export function Graph({ rewards }: Props) {
           ))}
         </AreaChart>
       </ResponsiveContainer>
+      <div>(Click on labels to show or hide reward types)</div>
     </>
   );
 }

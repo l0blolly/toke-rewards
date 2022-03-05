@@ -109,7 +109,6 @@ export function Totals({ latestCycle, address }: Props) {
       <div style={{ width: "100%", height: "400px" }}>
         <Suspense fallback={null}>
           <Graph rewards={rewards.map(({ data }) => data)} />
-          <div>(Click on labels to show or hide reward types)</div>
         </Suspense>
       </div>
 
@@ -119,7 +118,7 @@ export function Totals({ latestCycle, address }: Props) {
           <TableHead>
             <TableRow>
               <TableCell>Token</TableCell>
-              <TableCell>Amount</TableCell>
+              <TableCell>Reward (TOKE)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
